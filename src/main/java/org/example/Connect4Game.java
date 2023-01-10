@@ -40,6 +40,13 @@ public class Connect4Game {
                     break;
                 }
             }
+
+            // Switch to the other player
+            if (currentPlayer == PLAYER_1_TOKEN) {
+                currentPlayer = PLAYER_2_TOKEN;
+            } else {
+                currentPlayer = PLAYER_1_TOKEN;
+            }
         }
     }
 
