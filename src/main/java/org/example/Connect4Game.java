@@ -32,7 +32,7 @@ public class Connect4Game {
             // Prompt the player for their next move
             System.out.print("Player " + currentPlayer + ", enter column number: ");
             int col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
-            while (col <0 || col >=COLUMNS){
+            while (col < 0 || col >= COLUMNS) {
                 System.out.print("Sorry, that is not a valid move. Please enter a column number (1-7):");
                 col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
             }
@@ -44,12 +44,21 @@ public class Connect4Game {
                 continue;
             }
 
+            // Check if the player has won the game
+            if (checkForWin(board, row, col)) {
+                printBoard();
+                System.out.println("Player " + currentPlayer + " wins!");
+                break;
+            }
+
             // Switch to the other player
             if (currentPlayer == PLAYER_1_TOKEN) {
                 currentPlayer = PLAYER_2_TOKEN;
             } else {
                 currentPlayer = PLAYER_1_TOKEN;
             }
+
+
         }
     }
 
@@ -70,6 +79,7 @@ public class Connect4Game {
         // The column is full, return -1
         return -1;
     }
+
     private static void printBoard() {
         // Print the game board
         for (int row = 0; row < ROWS; row++) {
@@ -84,4 +94,39 @@ public class Connect4Game {
         System.out.println("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |");
     }
 
+    public static boolean checkForWin(char[][] board, int row, int col) {
+        // Check for a horizontal win
+        int count = 0;
+        for (int i = col - 3; i <= col + 3; i++) {
+            if (i < 0 || i >= COLUMNS) {
+                continue;
+            }
+            if (board[row][i] == board[row][col]) {
+                count++;
+                if (count == 4) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        // Check for a horizontal win
+        count = 0;
+        for (int i = row - 3; i <= row + 3; i++) {
+            if (i < 0 || i >= ROWS) {
+                continue;
+            }
+            if (board[i][col] == board[row][col]) {
+                count++;
+                if (count == 4) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        return false;
+    }
 }
