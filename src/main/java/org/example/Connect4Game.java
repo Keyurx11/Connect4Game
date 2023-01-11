@@ -1,7 +1,5 @@
 package org.example;
 
-import com.sun.tools.javac.Main;
-
 import java.util.Scanner;
 
 public class Connect4Game {
@@ -11,10 +9,14 @@ public class Connect4Game {
     public static final int COLUMNS = 7;
     public static final char PLAYER_1_TOKEN = 'X';
     public static final char PLAYER_2_TOKEN = 'O';
-    private static final char EMPTY_SPACE = ' ';
+    static final char EMPTY_SPACE = ' ';
     public static char[][] board = new char[ROWS][COLUMNS];
 
     public static void main(String[] args) {
+        runGame();
+    }
+
+    public static void runGame() {
         // Create the game board
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLUMNS; col++) {
@@ -35,6 +37,7 @@ public class Connect4Game {
             System.out.print("Player " + currentPlayer + ", enter column number: ");
             int col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
             scanner.nextLine();
+            //Making sure the move is within the game board
             while (col < 0 || col >= COLUMNS) {
                 System.out.print("Sorry, that is not a valid move. Please enter a column number (1-7):");
                 col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
@@ -55,18 +58,14 @@ public class Connect4Game {
                 //If players wants to play again
                 System.out.println("Would you like to play again? y/n");
                 String rematch = scanner.nextLine();
+                //Making sure user enters a valid selection
                 while (!rematch.equalsIgnoreCase("y") && !rematch.equalsIgnoreCase("n")) {
                     System.out.println("Invalid input. Please enter y or n:");
                     rematch = scanner.nextLine();
                 }
+                //If user wants to replay then calls the function to restart the game
                 if (rematch.equalsIgnoreCase("y")) {
-                    // Reset the game board
-                    for (int i = 0; i < ROWS; i++) {
-                        for (int j = 0; j < COLUMNS; j++) {
-                            board[i][j] = EMPTY_SPACE;
-                        }
-                    }
-                    main(args);
+                    replay();
                 }
                 break;
             }
@@ -112,6 +111,17 @@ public class Connect4Game {
         }
         System.out.println("-----------------------------");
         System.out.println("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |");
+    }
+
+    private static void replay() {
+        // Reset the game board
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
+                board[i][j] = EMPTY_SPACE;
+            }
+        }
+        //run game again
+        runGame();
     }
 
     public static boolean checkForWin(char[][] board, int row, int col) {
