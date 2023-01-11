@@ -9,6 +9,8 @@ public class Connect4Game {
     public static final int COLUMNS = 7;
     public static final char PLAYER_1_TOKEN = 'X';
     public static final char PLAYER_2_TOKEN = 'O';
+    public static final char BLITZ_KEY = 'B';
+    //public static final char BLITZ_KEY = 'T';
     static final char EMPTY_SPACE = ' ';
     public static char[][] board = new char[ROWS][COLUMNS];
     public static Scanner scanner = new Scanner(System.in);
@@ -31,15 +33,8 @@ public class Connect4Game {
         while (true) {
             printBoard();
 
-            // Prompt the player for their next move
-            System.out.print("Player " + currentPlayer + ", enter column number: ");
-            int col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
-            scanner.nextLine();
-            //Making sure the move is within the game board
-            while (col < 0 || col >= COLUMNS) {
-                System.out.print("Sorry, that is not a valid move. Please enter a column number (1-7):");
-                col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
-            }
+            // Call the function to check for a valid move
+            int col = getColSelection(currentPlayer);
 
             // Place the token in the specified column
             int row = placeToken(board, col, currentPlayer);
@@ -76,6 +71,44 @@ public class Connect4Game {
         }
     }
 
+    private static void printBoard() {
+        // Print the game board
+        for (int row = 0; row < ROWS; row++) {
+            System.out.print("| ");
+            for (int col = 0; col < COLUMNS; col++) {
+                System.out.print(board[row][col] + " | ");
+            }
+            System.out.println();
+
+        }
+        System.out.println("-----------------------------");
+        System.out.println("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |");
+    }
+
+    public static int getColSelection(char currentPlayer) {
+        System.out.print("Player " + currentPlayer + ", enter column number or special move (B for Blitz): ");
+        int col = scanner.nextInt() - 1;
+        if (!checkIfValidMove(board, currentPlayer, col)) {
+            return getColSelection(currentPlayer);
+        }
+        return col;
+    }
+
+    private static boolean checkIfValidMove(char[][] board, char currentPlayer, int col) {
+        boolean isValidMove = false;
+        //Making sure the move is within the game board
+        if (col == BLITZ_KEY) {
+            isValidMove = true;
+        } else if (col < 0 || col >= COLUMNS) {
+            System.out.println("Sorry, that is not a valid move. Please enter a column number (1-7).");
+        } else if (board[0][col] != EMPTY_SPACE) {
+            System.out.println("Oh no, that column is full. Try different column!");
+        } else {
+            isValidMove = true;
+        }
+        return isValidMove;
+    }
+
     public static int placeToken(char[][] board, int col, char token) {
         // Check if the column is full
         if (board[0][col] != EMPTY_SPACE) {
@@ -92,42 +125,6 @@ public class Connect4Game {
 
         // The column is full, return -1
         return -1;
-    }
-
-    private static void printBoard() {
-        // Print the game board
-        for (int row = 0; row < ROWS; row++) {
-            System.out.print("| ");
-            for (int col = 0; col < COLUMNS; col++) {
-                System.out.print(board[row][col] + " | ");
-            }
-            System.out.println();
-
-        }
-        System.out.println("-----------------------------");
-        System.out.println("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |");
-    }
-
-    private static void replay() {
-        //If players wants to play again
-        System.out.println("Would you like to play again? y/n");
-        String rematch = scanner.nextLine();
-        //Making sure user enters a valid selection
-        while (!rematch.equalsIgnoreCase("y") && !rematch.equalsIgnoreCase("n")) {
-            System.out.println("Invalid input. Please enter y or n:");
-            rematch = scanner.nextLine();
-        }
-        //If user wants to replay then calls the function to restart the game
-        if (rematch.equalsIgnoreCase("y")) {
-            // Reset the game board
-            for (int i = 0; i < ROWS; i++) {
-                for (int j = 0; j < COLUMNS; j++) {
-                    board[i][j] = EMPTY_SPACE;
-                }
-            }
-            //run game again
-            runGame();
-        }
     }
 
     public static boolean checkForWin(char[][] board, int row, int col) {
@@ -210,4 +207,19 @@ public class Connect4Game {
         return true; // if all spaces are filled, the game is a draw
     }
 
+    private static void replay() {
+        //Asking the user if they want to play again
+        System.out.println("Would you like to play again? y/n");
+        String rematch = scanner.next();
+        //Making sure user enters a valid selection
+        while (!rematch.equalsIgnoreCase("y") && !rematch.equalsIgnoreCase("n")) {
+            System.out.println("Invalid input. Please enter y or n:");
+            rematch = scanner.next();
+        }
+        //If user wants to replay then calls the function to restart the game
+        if (rematch.equalsIgnoreCase("y")) {
+            //run game again
+            runGame();
+        }
+    }
 }
