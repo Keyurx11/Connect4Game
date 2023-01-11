@@ -1,5 +1,7 @@
 package org.example;
 
+import com.sun.tools.javac.Main;
+
 import java.util.Scanner;
 
 public class Connect4Game {
@@ -32,6 +34,7 @@ public class Connect4Game {
             // Prompt the player for their next move
             System.out.print("Player " + currentPlayer + ", enter column number: ");
             int col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
+            scanner.nextLine();
             while (col < 0 || col >= COLUMNS) {
                 System.out.print("Sorry, that is not a valid move. Please enter a column number (1-7):");
                 col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
@@ -48,6 +51,23 @@ public class Connect4Game {
             if (checkForWin(board, row, col)) {
                 printBoard();
                 System.out.println("Player " + currentPlayer + " wins!");
+
+                //If players wants to play again
+                System.out.println("Would you like to play again? y/n");
+                String rematch = scanner.nextLine();
+                while (!rematch.equalsIgnoreCase("y") && !rematch.equalsIgnoreCase("n")) {
+                    System.out.println("Invalid input. Please enter y or n:");
+                    rematch = scanner.nextLine();
+                }
+                if (rematch.equalsIgnoreCase("y")) {
+                    // Reset the game board
+                    for (int i = 0; i < ROWS; i++) {
+                        for (int j = 0; j < COLUMNS; j++) {
+                            board[i][j] = EMPTY_SPACE;
+                        }
+                    }
+                    main(args);
+                }
                 break;
             }
 
@@ -111,7 +131,7 @@ public class Connect4Game {
             }
         }
 
-        // Check for a horizontal win
+        // Check for a vertical win
         count = 0;
         for (int i = row - 3; i <= row + 3; i++) {
             if (i < 0 || i >= ROWS) {
@@ -126,6 +146,39 @@ public class Connect4Game {
                 count = 0;
             }
         }
+
+        // Check for a diagonal win (check left to right)
+        count = 0;
+        for (int i = row - 3, j = col - 3; i <= row + 3; i++, j++) {
+            if (i < 0 || i >= ROWS || j < 0 || j >= COLUMNS) {
+                continue;
+            }
+            if (board[i][j] == board[row][col]) {
+                count++;
+                if (count == 4) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
+        // Check for a diagonal win (check right to left)
+        count = 0;
+        for (int i = row - 3, j = col + 3; i <= row + 3; i++, j--) {
+            if (i < 0 || i >= ROWS || j < 0 || j >= COLUMNS) {
+                continue;
+            }
+            if (board[i][j] == board[row][col]) {
+                count++;
+                if (count == 4) {
+                    return true;
+                }
+            } else {
+                count = 0;
+            }
+        }
+
 
         return false;
     }
