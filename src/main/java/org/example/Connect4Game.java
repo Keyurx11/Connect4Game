@@ -11,6 +11,7 @@ public class Connect4Game {
     public static final char PLAYER_2_TOKEN = 'O';
     static final char EMPTY_SPACE = ' ';
     public static char[][] board = new char[ROWS][COLUMNS];
+    public static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         runGame();
@@ -23,9 +24,6 @@ public class Connect4Game {
                 board[row][col] = EMPTY_SPACE;
             }
         }
-        //Reading player input
-        Scanner scanner = new Scanner(System.in);
-
         // Initialize the current player
         char currentPlayer = PLAYER_1_TOKEN;
 
@@ -54,21 +52,18 @@ public class Connect4Game {
             if (checkForWin(board, row, col)) {
                 printBoard();
                 System.out.println("Player " + currentPlayer + " wins!");
-
-                //If players wants to play again
-                System.out.println("Would you like to play again? y/n");
-                String rematch = scanner.nextLine();
-                //Making sure user enters a valid selection
-                while (!rematch.equalsIgnoreCase("y") && !rematch.equalsIgnoreCase("n")) {
-                    System.out.println("Invalid input. Please enter y or n:");
-                    rematch = scanner.nextLine();
-                }
-                //If user wants to replay then calls the function to restart the game
-                if (rematch.equalsIgnoreCase("y")) {
-                    replay();
-                }
+                replay();
                 break;
             }
+
+            // Check if the game is drawn
+            if (checkForDraw(board)) {
+                printBoard();
+                System.out.println("Its a draw");
+                replay();
+                break;
+            }
+
 
             // Switch to the other player
             if (currentPlayer == PLAYER_1_TOKEN) {
@@ -114,14 +109,25 @@ public class Connect4Game {
     }
 
     private static void replay() {
-        // Reset the game board
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLUMNS; j++) {
-                board[i][j] = EMPTY_SPACE;
-            }
+        //If players wants to play again
+        System.out.println("Would you like to play again? y/n");
+        String rematch = scanner.nextLine();
+        //Making sure user enters a valid selection
+        while (!rematch.equalsIgnoreCase("y") && !rematch.equalsIgnoreCase("n")) {
+            System.out.println("Invalid input. Please enter y or n:");
+            rematch = scanner.nextLine();
         }
-        //run game again
-        runGame();
+        //If user wants to replay then calls the function to restart the game
+        if (rematch.equalsIgnoreCase("y")) {
+            // Reset the game board
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLUMNS; j++) {
+                    board[i][j] = EMPTY_SPACE;
+                }
+            }
+            //run game again
+            runGame();
+        }
     }
 
     public static boolean checkForWin(char[][] board, int row, int col) {
@@ -192,4 +198,16 @@ public class Connect4Game {
 
         return false;
     }
+
+    private static boolean checkForDraw(char[][] board) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                if (board[row][col] == EMPTY_SPACE) {
+                    return false; // if there is at least one empty space, the game is not a draw
+                }
+            }
+        }
+        return true; // if all spaces are filled, the game is a draw
+    }
+
 }
