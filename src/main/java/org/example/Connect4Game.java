@@ -31,14 +31,17 @@ public class Connect4Game {
 
             // Prompt the player for their next move
             System.out.print("Player " + currentPlayer + ", enter column number: ");
-            int col = scanner.nextInt();
+            int col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
+            while (col <0 || col >=COLUMNS){
+                System.out.print("Sorry, that is not a valid move. Please enter a column number (1-7):");
+                col = scanner.nextInt() - 1; //input - 1 as comp counts from 0 but our user will enter col 1-7
+            }
 
             // Place the token in the specified column
-            for (int row = ROWS - 1; row >= 0; row--) {
-                if (board[row][col] == EMPTY_SPACE) {
-                    board[row][col] = currentPlayer;
-                    break;
-                }
+            int row = placeToken(board, col, currentPlayer);
+            if (row == -1) {
+                System.out.println("\nOh no, that column is full. Try different column!");
+                continue;
             }
 
             // Switch to the other player
@@ -50,6 +53,23 @@ public class Connect4Game {
         }
     }
 
+    public static int placeToken(char[][] board, int col, char token) {
+        // Check if the column is full
+        if (board[0][col] != EMPTY_SPACE) {
+            return -1;
+        }
+
+        // Place the token in the first empty space in the column
+        for (int row = ROWS - 1; row >= 0; row--) {
+            if (board[row][col] == EMPTY_SPACE) {
+                board[row][col] = token;
+                return row;
+            }
+        }
+
+        // The column is full, return -1
+        return -1;
+    }
     private static void printBoard() {
         // Print the game board
         for (int row = 0; row < ROWS; row++) {
