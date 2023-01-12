@@ -9,11 +9,22 @@ public class Connect4Game {
     public static final int COLUMNS = 7;
     public static final char PLAYER_1_TOKEN = 'X';
     public static final char PLAYER_2_TOKEN = 'O';
+    static final char EMPTY_SPACE = '-';
     public static final char BLITZ_KEY = 'B';
     //public static final char BLITZ_KEY = 'T';
-    static final char EMPTY_SPACE = ' ';
+
+    // 2D array to store the game board
     public static char[][] board = new char[ROWS][COLUMNS];
     public static Scanner scanner = new Scanner(System.in);
+
+    // Special move variables
+    public static boolean player1Turn = true;
+    private static boolean player1BlitzUsed = false;
+    private static boolean player2BlitzUsed = false;
+
+    //These row-col variables are used as argument in calling into checkWin function. We are getting that from placeToken function.
+    private static int lastRow = -1;
+    private static int lastCol = -1;
 
     public static void main(String[] args) {
         runGame();
@@ -33,44 +44,68 @@ public class Connect4Game {
         while (true) {
             printBoard();
 
-            // Call the function to check for a valid move
-            int col = getColSelection(currentPlayer);
+            // Get the player's move
+            System.out.println("Player" + currentPlayer + ", Enter column number (1-7) or special move (B for Blitz, T for Time Bomb): ");
+            String move = scanner.nextLine();
 
-            // Place the token in the specified column
-            int row = placeToken(board, col, currentPlayer);
-            if (row == -1) {
-                System.out.println("\nOh no, that column is full. Try different column!");
+            // Validate the input to make sure it is a valid integer or special move
+            if (!move.isEmpty() && (move.equalsIgnoreCase("B") || move.equalsIgnoreCase("T") || move.matches("^\\d+$"))) {
+                if (move.equalsIgnoreCase("B")) {
+                    // Player is using the Blitz special move
+                    if (player1Turn && !player1BlitzUsed) {
+                        player1BlitzUsed = true;
+                        System.out.print("Enter column number to clear: ");
+                        int column = scanner.nextInt() - 1;
+                        clearColumn(column);
+                    } else if (!player1Turn && !player2BlitzUsed) {
+                        player2BlitzUsed = true;
+                        System.out.print("Enter column number to clear: ");
+                        int column = scanner.nextInt() - 1;
+                        clearColumn(column);
+                    } else {
+                        System.out.println("Sorry, you have already used the Blitz special move or it is not your turn.");
+                        continue;
+                    }
+                } else if (move.equalsIgnoreCase("T")) {
+                    //TODO timebomb feature
+                } else {
+                    // Player is making a normal move
+                    int column = Integer.parseInt(move) - 1;
+                    if (!checkIfValidCol(column) || !placeToken(column, currentPlayer)) {
+                        continue;
+                    }
+                    // Check if the player has won
+                    if (checkForWin(lastRow, lastCol)) {
+                        printBoard();
+                        System.out.println("Player " + currentPlayer + " wins!");
+                        replay();
+                        break;
+                    }
+                }
+            } else {
+                System.out.println("Sorry, that is not a valid move. Please enter a column number (1-" + COLUMNS + ") or special move (B for Blitz, T for Time Bomb).");
                 continue;
             }
 
-            // Check if the player has won the game
-            if (checkForWin(board, row, col)) {
-                printBoard();
-                System.out.println("Player " + currentPlayer + " wins!");
-                replay();
-                break;
-            }
-
             // Check if the game is drawn
-            if (checkForDraw(board)) {
+            if (checkForDraw()) {
                 printBoard();
-                System.out.println("Its a draw");
+                System.out.println("It's a draw!");
                 replay();
                 break;
             }
-
-
             // Switch to the other player
             if (currentPlayer == PLAYER_1_TOKEN) {
                 currentPlayer = PLAYER_2_TOKEN;
+                player1Turn = false;
             } else {
                 currentPlayer = PLAYER_1_TOKEN;
+                player1Turn = true;
             }
-
-
         }
     }
 
+    //This function is used to print the game board in the terminal
     private static void printBoard() {
         // Print the game board
         for (int row = 0; row < ROWS; row++) {
@@ -85,49 +120,36 @@ public class Connect4Game {
         System.out.println("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |");
     }
 
-    public static int getColSelection(char currentPlayer) {
-        System.out.print("Player " + currentPlayer + ", enter column number or special move (B for Blitz): ");
-        int col = scanner.nextInt() - 1;
-        if (!checkIfValidMove(board, currentPlayer, col)) {
-            return getColSelection(currentPlayer);
-        }
-        return col;
-    }
-
-    private static boolean checkIfValidMove(char[][] board, char currentPlayer, int col) {
-        boolean isValidMove = false;
-        //Making sure the move is within the game board
-        if (col == BLITZ_KEY) {
-            isValidMove = true;
-        } else if (col < 0 || col >= COLUMNS) {
-            System.out.println("Sorry, that is not a valid move. Please enter a column number (1-7).");
-        } else if (board[0][col] != EMPTY_SPACE) {
-            System.out.println("Oh no, that column is full. Try different column!");
-        } else {
-            isValidMove = true;
-        }
-        return isValidMove;
-    }
-
-    public static int placeToken(char[][] board, int col, char token) {
-        // Check if the column is full
-        if (board[0][col] != EMPTY_SPACE) {
-            return -1;
-        }
-
+    /**
+     * This function places a token at the first empty space in a given column
+     *
+     * @param col   The column in which to place the token
+     * @param token The token to place in the column
+     * @return Returns a boolean indicating if the operation was successful or not
+     */
+    public static boolean placeToken(int col, char token) {
         // Place the token in the first empty space in the column
         for (int row = ROWS - 1; row >= 0; row--) {
             if (board[row][col] == EMPTY_SPACE) {
                 board[row][col] = token;
-                return row;
+                lastRow = row;
+                lastCol = col;
+                return true;
             }
         }
 
-        // The column is full, return -1
-        return -1;
+        // The column is full, return false
+        return false;
     }
 
-    public static boolean checkForWin(char[][] board, int row, int col) {
+    /**
+     * This function checks if the last placed token resulted in a win for the player
+     *
+     * @param row The row where the last token was placed
+     * @param col The column where the last token was placed
+     * @return Returns a boolean indicating if the last placed token resulted in a win
+     */
+    public static boolean checkForWin(int row, int col) {
         // Check for a horizontal win
         int count = 0;
         for (int i = col - 3; i <= col + 3; i++) {
@@ -196,7 +218,12 @@ public class Connect4Game {
         return false;
     }
 
-    private static boolean checkForDraw(char[][] board) {
+    /**
+     * Checks if the board is full and the game is draw
+     *
+     * @return true if the game is draw, false otherwise
+     */
+    private static boolean checkForDraw() {
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLUMNS; col++) {
                 if (board[row][col] == EMPTY_SPACE) {
@@ -207,6 +234,7 @@ public class Connect4Game {
         return true; // if all spaces are filled, the game is a draw
     }
 
+    // Ask if user wants to replay and calls the runGame function again to replay
     private static void replay() {
         //Asking the user if they want to play again
         System.out.println("Would you like to play again? y/n");
@@ -222,4 +250,34 @@ public class Connect4Game {
             runGame();
         }
     }
+
+    /**
+     * Clears the given column of the game board
+     *
+     * @param column column number to clear
+     */
+    public static void clearColumn(int column) {
+        for (int i = 0; i < ROWS; i++) {
+            board[i][column] = EMPTY_SPACE;
+        }
+    }
+
+    /**
+     * Checks if the given column is valid and not full
+     *
+     * @param col column number to check
+     * @return true if the column is valid, false otherwise
+     */
+    public static boolean checkIfValidCol(int col) {
+        boolean isValidMove = false;
+        if (col < 0 || col >= COLUMNS) {
+            System.out.println("Sorry, that is not a valid move. Please enter a column number (1-7).");
+        } else if (board[0][col] != EMPTY_SPACE) {
+            System.out.println("Oh no, that column is full. Try different column!");
+        } else {
+            isValidMove = true;
+        }
+        return isValidMove;
+    }
+
 }
