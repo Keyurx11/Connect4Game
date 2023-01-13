@@ -9,27 +9,41 @@ public class Connect4Game {
     public static final int COLUMNS = 7;
     public static final char PLAYER_1_TOKEN = 'X';
     public static final char PLAYER_2_TOKEN = 'O';
-    static final char EMPTY_SPACE = '-';
-    public static final char BLITZ_KEY = 'B';
-    //public static final char BLITZ_KEY = 'T';
+    public static final char EMPTY_SPACE = '-';
+    public static final String BLITZ_KEY = "B";
+    public static final String TIME_BOMB_KEY = "T";
+    public static final char TIME_BOMB_SYMBOL = '*';
+    public static final Scanner scanner = new Scanner(System.in);
+
 
     // 2D array to store the game board
     public static char[][] board = new char[ROWS][COLUMNS];
-    public static Scanner scanner = new Scanner(System.in);
 
-    // Special move variables
+
+    // Special move variables for Blitz
     public static boolean player1Turn = true;
     private static boolean player1BlitzUsed = false;
     private static boolean player2BlitzUsed = false;
 
-    //These row-col variables are used as argument in calling into checkWin function. We are getting that from placeToken function.
+
+    // Special move variables for Time Bomb
+    private static int timeBombRow = -1;
+    private static int timeBombCol = -1;
+    private static int timeBombCounter = -1;
+    public static boolean player1TimeBombUsed = false;
+    private static boolean player2TimeBombUsed = false;
+
+
+    //Store the coordinates of the token to place on the game board
     private static int lastRow = -1;
     private static int lastCol = -1;
+
 
     public static void main(String[] args) {
         runGame();
     }
 
+    //This function contains the logic to run the game
     public static void runGame() {
         // Create the game board
         for (int row = 0; row < ROWS; row++) {
@@ -37,6 +51,7 @@ public class Connect4Game {
                 board[row][col] = EMPTY_SPACE;
             }
         }
+
         // Initialize the current player
         char currentPlayer = PLAYER_1_TOKEN;
 
@@ -45,69 +60,139 @@ public class Connect4Game {
             printBoard();
 
             // Get the player's move
-            System.out.println("Player" + currentPlayer + ", Enter column number (1-7) or special move (B for Blitz, T for Time Bomb): ");
+            System.out.print("Player " + currentPlayer + ", Enter column number (1-" + COLUMNS + ") or special move (B for Blitz, T for Time Bomb): ");
             String move = scanner.nextLine();
 
             // Validate the input to make sure it is a valid integer or special move
-            if (!move.isEmpty() && (move.equalsIgnoreCase("B") || move.equalsIgnoreCase("T") || move.matches("^\\d+$"))) {
-                if (move.equalsIgnoreCase("B")) {
+            if (!move.isEmpty() && (move.equalsIgnoreCase(BLITZ_KEY) || move.equalsIgnoreCase(TIME_BOMB_KEY) || move.matches("^\\d+$"))) {
+                if (move.equalsIgnoreCase(BLITZ_KEY)) {
                     // Player is using the Blitz special move
                     if (player1Turn && !player1BlitzUsed) {
-                        player1BlitzUsed = true;
-                        System.out.print("Enter column number to clear: ");
-                        int column = scanner.nextInt() - 1;
-                        clearColumn(column);
+                        while (true) {
+                            System.out.print("Enter column number to clear: ");
+                            if (scanner.hasNextInt()) {
+                                int column = scanner.nextInt() - 1;
+                                if (clearColumn(column)) {
+                                    player1BlitzUsed = true;
+                                    break;
+                                }
+                            } else {
+                                System.out.println("Sorry, that is not a valid column. Try again!");
+                                scanner.next();
+                            }
+                        }
                     } else if (!player1Turn && !player2BlitzUsed) {
-                        player2BlitzUsed = true;
-                        System.out.print("Enter column number to clear: ");
-                        int column = scanner.nextInt() - 1;
-                        clearColumn(column);
+                        while (true) {
+                            System.out.print("Enter column number to clear: ");
+                            if (scanner.hasNextInt()) {
+                                int column = scanner.nextInt() - 1;
+                                if (clearColumn(column)) {
+                                    player2BlitzUsed = true;
+                                    break;
+                                }
+                            } else {
+                                System.out.println("Sorry, that is not a valid column. Try again!");
+                                scanner.next();
+                            }
+                        }
                     } else {
-                        System.out.println("Sorry, you have already used the Blitz special move or it is not your turn.");
+                        System.out.println("Sorry, you have already used the Blitz special move.");
                         continue;
                     }
-                } else if (move.equalsIgnoreCase("T")) {
-                    //TODO timebomb feature
+                } else if (move.equalsIgnoreCase(TIME_BOMB_KEY)) {
+                    if (timeBombCounter > 0) {
+                        System.out.printf("Sorry but one time bomb is already in deployed.");
+                    } else if (player1Turn && !player1TimeBombUsed) {
+                        while (true) {
+                            System.out.print("Enter column number to place the Time Bomb: ");
+                            if (scanner.hasNextInt()) {
+                                int column = scanner.nextInt() - 1;
+                                if (placeToken(column, TIME_BOMB_SYMBOL)) {
+                                    player1TimeBombUsed = true;
+                                    break;
+                                }
+                            } else {
+                                System.out.println("Sorry, that is not a valid column. Try again!");
+                                scanner.next();
+                            }
+                        }
+                        timeBombCounter = 3;
+                        timeBombRow = lastRow;
+                        timeBombCol = lastCol;
+                        System.out.println("Time Bomb has been placed!");
+                    } else if (!player1Turn && !player2TimeBombUsed) {
+                        while (true) {
+                            System.out.print("Enter column number to place the Time Bomb: ");
+                            if (scanner.hasNextInt()) {
+                                int column = scanner.nextInt() - 1;
+                                if (placeToken(column, TIME_BOMB_SYMBOL)) {
+                                    player2TimeBombUsed = true;
+                                    break;
+                                }
+                            } else {
+                                System.out.println("Sorry, that is not a valid column. Try again!");
+                                scanner.next();
+                            }
+                        }
+                        timeBombCounter = 2;
+                        timeBombRow = lastRow;
+                        timeBombCol = lastCol;
+                        System.out.println("Time Bomb has been placed!");
+                    } else {
+                        System.out.println("Sorry, you have already used the Time Bomb special move.");
+                        continue;
+                    }
                 } else {
                     // Player is making a normal move
                     int column = Integer.parseInt(move) - 1;
-                    if (!checkIfValidCol(column) || !placeToken(column, currentPlayer)) {
+                    if (!placeToken(column, currentPlayer)) {
                         continue;
                     }
+
                     // Check if the player has won
                     if (checkForWin(lastRow, lastCol)) {
                         printBoard();
-                        System.out.println("Player " + currentPlayer + " wins!");
+                        System.out.println("Player " + currentPlayer + " wins! Game over.");
                         replay();
-                        break;
+                        return;
+                    }
+
+                    // Check if the game is drawn
+                    if (checkForDraw()) {
+                        printBoard();
+                        System.out.println("Game is drawn! Game over.");
+                        replay();
+                        return;
+                    }
+
+                    // Check if time bomb counter has ended
+                    if (timeBombCounter > 0) {
+                        timeBombCounter--;
+                    } else if (timeBombCounter == 0) {
+                        clearSurrounding(timeBombRow, timeBombCol);
+                        timeBombCounter--;
                     }
                 }
-            } else {
-                System.out.println("Sorry, that is not a valid move. Please enter a column number (1-" + COLUMNS + ") or special move (B for Blitz, T for Time Bomb).");
-                continue;
-            }
+                // Switch to the other player
+                if (currentPlayer == PLAYER_1_TOKEN) {
+                    currentPlayer = PLAYER_2_TOKEN;
+                    player1Turn = false;
+                } else {
+                    currentPlayer = PLAYER_1_TOKEN;
+                    player1Turn = true;
+                }
 
-            // Check if the game is drawn
-            if (checkForDraw()) {
-                printBoard();
-                System.out.println("It's a draw!");
-                replay();
-                break;
-            }
-            // Switch to the other player
-            if (currentPlayer == PLAYER_1_TOKEN) {
-                currentPlayer = PLAYER_2_TOKEN;
-                player1Turn = false;
-            } else {
-                currentPlayer = PLAYER_1_TOKEN;
-                player1Turn = true;
+            } else { // If anything else apart from number, T or B is entered will throw error
+                System.out.printf("Sorry, that is not a valid move. Try again!");
             }
         }
     }
 
+
     //This function is used to print the game board in the terminal
     private static void printBoard() {
         // Print the game board
+        System.out.println();
         for (int row = 0; row < ROWS; row++) {
             System.out.print("| ");
             for (int col = 0; col < COLUMNS; col++) {
@@ -117,7 +202,29 @@ public class Connect4Game {
 
         }
         System.out.println("-----------------------------");
-        System.out.println("| 1 | 2 | 3 | 4 | 5 | 6 | 7 |");
+        System.out.print("| ");
+        for (int col = 1; col < COLUMNS + 1; col++) {
+            System.out.printf("%d | ", col);
+        }
+        System.out.println();
+    }
+
+    /**
+     * Checks if the given column is valid and not full
+     *
+     * @param col column number to check
+     * @return true if the column is valid, false otherwise
+     */
+    public static boolean checkIfValidCol(int col) {
+        boolean isValidMove = false;
+        if (col < 0 || col >= COLUMNS) {
+            System.out.println("Sorry, that is not a valid column. Try again!");
+        } else if (board[0][col] != EMPTY_SPACE) {
+            System.out.println("Oh no, that column is full. Try different column!");
+        } else {
+            isValidMove = true;
+        }
+        return isValidMove;
     }
 
     /**
@@ -128,6 +235,10 @@ public class Connect4Game {
      * @return Returns a boolean indicating if the operation was successful or not
      */
     public static boolean placeToken(int col, char token) {
+        if (!checkIfValidCol(col)) {
+            return false;
+        }
+
         // Place the token in the first empty space in the column
         for (int row = ROWS - 1; row >= 0; row--) {
             if (board[row][col] == EMPTY_SPACE) {
@@ -252,32 +363,37 @@ public class Connect4Game {
     }
 
     /**
-     * Clears the given column of the game board
+     * Blitz Move - Clears the given column of the game board
      *
      * @param column column number to clear
      */
-    public static void clearColumn(int column) {
+    public static boolean clearColumn(int column) {
+        if (!checkIfValidCol(column)) {
+            return false;
+        }
+
         for (int i = 0; i < ROWS; i++) {
             board[i][column] = EMPTY_SPACE;
+            return true;
         }
+        return false;
     }
 
     /**
-     * Checks if the given column is valid and not full
+     * TimeBomb Move - Clears the cells surrounding a given location on the game board
      *
-     * @param col column number to check
-     * @return true if the column is valid, false otherwise
+     * @param row The row number of the location on the board
+     * @param col The column number of the location on the board
      */
-    public static boolean checkIfValidCol(int col) {
-        boolean isValidMove = false;
-        if (col < 0 || col >= COLUMNS) {
-            System.out.println("Sorry, that is not a valid move. Please enter a column number (1-7).");
-        } else if (board[0][col] != EMPTY_SPACE) {
-            System.out.println("Oh no, that column is full. Try different column!");
-        } else {
-            isValidMove = true;
+    public static void clearSurrounding(int row, int col) {
+        // clear the cells around the time bomb
+        for (int r = row - 1; r <= row + 1; r++) {
+            for (int c = col - 1; c <= col + 1; c++) {
+                if (r >= 0 && r < ROWS && c >= 0 && c < COLUMNS) {
+                    board[r][c] = EMPTY_SPACE;
+                }
+            }
         }
-        return isValidMove;
     }
 
 }
