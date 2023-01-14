@@ -605,7 +605,7 @@ public class Connect4Game {
      *
      * @return true if the game is draw, false otherwise
      */
-    private static boolean checkForDraw() {
+    static boolean checkForDraw() {
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLUMNS; col++) {
                 if (board[row][col] == EMPTY_SPACE) {
