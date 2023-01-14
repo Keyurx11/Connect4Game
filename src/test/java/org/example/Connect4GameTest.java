@@ -2,18 +2,16 @@ package org.example;
 
 import org.junit.Test;
 
+import static org.example.Connect4Game.initializeBoard;
 import static org.junit.Assert.*;
 
 public class Connect4GameTest {
 
-    @Test
+    @Test //This test checks the functionality of the checkIfValidCol method, including testing valid and invalid columns, as well as full columns.
     public void testCheckIfValidCol() {
-// Initialize the game board
-        for (int row = 0; row < Connect4Game.ROWS; row++) {
-            for (int col = 0; col < Connect4Game.COLUMNS; col++) {
-                Connect4Game.board[row][col] = Connect4Game.EMPTY_SPACE;
-            }
-        }
+        // Initialize the game board
+        initializeBoard();
+
         // Test valid column
         assertTrue(Connect4Game.checkIfValidCol(0));
 
@@ -30,14 +28,10 @@ public class Connect4GameTest {
         assertFalse(Connect4Game.checkIfValidCol(1));
     }
 
-    @Test
+    @Test // Test if the placeToken function correctly places tokens in valid and invalid columns
     public void testPlaceToken() {
         // Initialize the game board
-        for (int row = 0; row < Connect4Game.ROWS; row++) {
-            for (int col = 0; col < Connect4Game.COLUMNS; col++) {
-                Connect4Game.board[row][col] = Connect4Game.EMPTY_SPACE;
-            }
-        }
+        initializeBoard();
 
         // Test placing a token in a valid column
         assertTrue(Connect4Game.placeToken(0, Connect4Game.PLAYER_1_TOKEN));
@@ -54,14 +48,10 @@ public class Connect4GameTest {
         assertFalse(Connect4Game.placeToken(Connect4Game.COLUMNS, Connect4Game.PLAYER_1_TOKEN));
     }
 
-    @Test
+    @Test // Test if the checkForWin function correctly checks different winning combinations
     public void testCheckForWin() {
         // Initialize the game board
-        for (int row = 0; row < Connect4Game.ROWS; row++) {
-            for (int col = 0; col < Connect4Game.COLUMNS; col++) {
-                Connect4Game.board[row][col] = Connect4Game.EMPTY_SPACE;
-            }
-        }
+        initializeBoard();
 
         // Test horizontal win for player 1
         for (int col = 0; col < 4; col++) {
@@ -92,9 +82,9 @@ public class Connect4GameTest {
     }
 
 
-    @Test
+    @Test //This test function checks if the checkForDraw function correctly if in scenario of draw
     public void testCheckForDraw() {
-// Initialize the game board
+        // Initialize the game board
         for (int row = 0; row < Connect4Game.ROWS; row++) {
             for (int col = 0; col < Connect4Game.COLUMNS; col++) {
                 Connect4Game.board[row][col] = Connect4Game.PLAYER_1_TOKEN;
@@ -107,14 +97,10 @@ public class Connect4GameTest {
         assertFalse(Connect4Game.checkForDraw());
     }
 
-    @Test
+    @Test // Test if the clearColumn function correctly clears a given column
     public void testClearColumn() {
         // Initialize the game board
-        for (int row = 0; row < Connect4Game.ROWS; row++) {
-            for (int col = 0; col < Connect4Game.COLUMNS; col++) {
-                Connect4Game.board[row][col] = Connect4Game.EMPTY_SPACE;
-            }
-        }
+        initializeBoard();
 
         // Fill the first column with tokens
         for (int row = 0; row < Connect4Game.ROWS; row++) {
@@ -123,9 +109,24 @@ public class Connect4GameTest {
 
         // Clear the first column
         Connect4Game.clearColumn(0);
+
+        // Try to clear an invalid column
+        Connect4Game.clearColumn(-1);
+        Connect4Game.clearColumn(Connect4Game.COLUMNS);
     }
 
+    @Test // Test if the clearSurrounding function correctly clears cells around a given location
+    public void testClearSurrounding() {
+        // Initialize the game board
+        initializeBoard();
 
-    //TODO Test for clearSurrounding
-
+        // Test clearing surrounding cells of a location on the game board
+        Connect4Game.board[2][2] = Connect4Game.PLAYER_1_TOKEN;
+        Connect4Game.clearSurrounding(2, 2);
+        for (int r = 1; r <= 3; r++) {
+            for (int c = 1; c <= 3; c++) {
+                assertEquals(Connect4Game.board[r][c], Connect4Game.EMPTY_SPACE);
+            }
+        }
+    }
 }

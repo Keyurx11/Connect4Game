@@ -77,11 +77,7 @@ public class Connect4Game {
     public static void multiplayerMode() {
         System.out.println("\nGame's On! Player X first");
         // Create the game board
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLUMNS; col++) {
-                board[row][col] = EMPTY_SPACE;
-            }
-        }
+        initializeBoard();
 
         // Initialize the current player
         char currentPlayer = PLAYER_1_TOKEN;
@@ -251,11 +247,7 @@ public class Connect4Game {
 
         System.out.println("\nComputer says 'after you' a like gentleman, it's your turn to make the first move.");
         // Create the game board
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLUMNS; col++) {
-                board[row][col] = EMPTY_SPACE;
-            }
-        }
+        initializeBoard();
 
         // Initialize the current player
         char currentPlayer = PLAYER_1_TOKEN;
@@ -456,6 +448,16 @@ public class Connect4Game {
         }
     }
 
+    //This function creates the game-board at start of the game
+    static void initializeBoard() {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                board[row][col] = EMPTY_SPACE;
+            }
+        }
+    }
+
+
     //This function is used to print the game board in the terminal
     private static void printBoard() {
         // Prints out the playable columns for the board
@@ -648,14 +650,12 @@ public class Connect4Game {
         for (int i = 0; i < ROWS; i++) {
             board[i][column] = EMPTY_SPACE;
         }
-        //to pass the unit test for testClearColumn comment out code from here to --
-//        try {
-//            System.out.println("\nBlitzzzzed, pew pew..");
-//            Thread.sleep(1000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        //--till here
+        try {
+            System.out.println("\nBlitzzzzed, pew pew..");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
