@@ -1,15 +1,16 @@
 package org.example;
 
+import java.util.Random;
 import java.util.Scanner;
 
 public class Connect4Game {
 
     // Constants for the game board
     public static final int ROWS = 6;
-    public static final int COLUMNS = 7;
+    public static final int COLUMNS = 7; //board is relative and responsible till 3 digits column size
     public static final char PLAYER_1_TOKEN = 'X';
     public static final char PLAYER_2_TOKEN = 'O';
-    public static final char EMPTY_SPACE = '-';
+    public static final char EMPTY_SPACE = '-'; //change to any styling you like
     public static final String BLITZ_KEY = "B";
     public static final String TIME_BOMB_KEY = "T";
     public static final char TIME_BOMB_SYMBOL = '*';
@@ -29,22 +30,52 @@ public class Connect4Game {
     // Special move variables for Time Bomb
     private static int timeBombRow = -1;
     private static int timeBombCol = -1;
+    private static int blastTimeBombIn = 3; //write in how many moves you want time bomb to blast
     private static int timeBombCounter = -1;
     public static boolean player1TimeBombUsed = false;
     private static boolean player2TimeBombUsed = false;
 
 
     //Store the coordinates of the token to place on the game board
-    private static int lastRow = -1;
-    private static int lastCol = -1;
+    private static int lastRow = 0;
+    private static int lastCol = 0;
 
 
     public static void main(String[] args) {
         runGame();
     }
 
-    //This function contains the logic to run the game
+
     public static void runGame() {
+        System.out.println("\nWelcome to Connect 4!");
+        System.out.println("Who would you playing with?");
+        System.out.println("1. Player vs Player");
+        System.out.println("2. Player vs Computer");
+        System.out.println("3. Play Guide");
+
+        // Prompt the user to select a game mode
+        System.out.print("Please select a one of the option (1, 2 or 3): ");
+
+        // Validate the user's input to ensure that it is 1 or 2
+        String gameMode = scanner.nextLine();
+        while (!gameMode.equals("1") && !gameMode.equals("2") && !gameMode.equals("3")) {
+            System.out.print("Invalid input. Please select a game mode (1, 2 or 3): ");
+            gameMode = scanner.nextLine();
+        }
+
+        if (gameMode.equals("1")) {
+            multiplayerMode();
+        } else if (gameMode.equals("2")) {
+            vsComputerMode();
+        } else if (gameMode.equals("3")) {
+            howToPlay();
+        }
+    }
+
+
+    // Player vs Player game mode
+    public static void multiplayerMode() {
+        System.out.println("\nGame's On! Player X first");
         // Create the game board
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLUMNS; col++) {
@@ -61,7 +92,7 @@ public class Connect4Game {
 
             // Get the player's move
             System.out.print("Player " + currentPlayer + ", Enter column number (1-" + COLUMNS + ") or special move (B for Blitz, T for Time Bomb): ");
-            String move = scanner.nextLine();
+            String move = scanner.next();
 
             // Validate the input to make sure it is a valid integer or special move
             if (!move.isEmpty() && (move.equalsIgnoreCase(BLITZ_KEY) || move.equalsIgnoreCase(TIME_BOMB_KEY) || move.matches("^\\d+$"))) {
@@ -99,9 +130,11 @@ public class Connect4Game {
                         System.out.println("Sorry, you have already used the Blitz special move.");
                         continue;
                     }
-                } else if (move.equalsIgnoreCase(TIME_BOMB_KEY)) {
+                }
+                // Player is using the Time Bomb special move
+                else if (move.equalsIgnoreCase(TIME_BOMB_KEY)) {
                     if (timeBombCounter > 0) {
-                        System.out.printf("Sorry but one time bomb is already in deployed.");
+                        System.out.printf("Sorry but one time bomb is already deployed.");
                     } else if (player1Turn && !player1TimeBombUsed) {
                         while (true) {
                             System.out.print("Enter column number to place the Time Bomb: ");
@@ -116,10 +149,15 @@ public class Connect4Game {
                                 scanner.next();
                             }
                         }
-                        timeBombCounter = 3;
+                        timeBombCounter = blastTimeBombIn;
                         timeBombRow = lastRow;
                         timeBombCol = lastCol;
-                        System.out.println("Time Bomb has been placed!");
+                        try {
+                            System.out.println("\nTime Bomb has been placed! Will blast in 3 moves.");
+                            Thread.sleep(1300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     } else if (!player1Turn && !player2TimeBombUsed) {
                         while (true) {
                             System.out.print("Enter column number to place the Time Bomb: ");
@@ -134,10 +172,15 @@ public class Connect4Game {
                                 scanner.next();
                             }
                         }
-                        timeBombCounter = 2;
+                        timeBombCounter = blastTimeBombIn;
                         timeBombRow = lastRow;
                         timeBombCol = lastCol;
-                        System.out.println("Time Bomb has been placed!");
+                        try {
+                            System.out.println("\nTime Bomb has been placed! Will blast in 3 moves.");
+                            Thread.sleep(1300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     } else {
                         System.out.println("Sorry, you have already used the Time Bomb special move.");
                         continue;
@@ -152,27 +195,37 @@ public class Connect4Game {
                     // Check if the player has won
                     if (checkForWin(lastRow, lastCol)) {
                         printBoard();
-                        System.out.println("Player " + currentPlayer + " wins! Game over.");
+                        System.out.println("Player " + currentPlayer + " wins! GAME OVER.");
                         replay();
                         return;
                     }
 
                     // Check if the game is drawn
                     if (checkForDraw()) {
-                        printBoard();
-                        System.out.println("Game is drawn! Game over.");
                         replay();
                         return;
                     }
-
-                    // Check if time bomb counter has ended
-                    if (timeBombCounter > 0) {
-                        timeBombCounter--;
-                    } else if (timeBombCounter == 0) {
-                        clearSurrounding(timeBombRow, timeBombCol);
-                        timeBombCounter--;
-                    }
                 }
+                // Check if time bomb counter has ended
+                if (timeBombCounter > 0) {
+                    timeBombCounter--;
+                } else if (timeBombCounter == 0) {
+                    System.out.printf("\nTick Tick ...\n");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.printf("\nBOOM!!!\n");
+                    try {
+                        Thread.sleep(300);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    clearSurrounding(timeBombRow, timeBombCol);
+                    timeBombCounter--;
+                }
+
                 // Switch to the other player
                 if (currentPlayer == PLAYER_1_TOKEN) {
                     currentPlayer = PLAYER_2_TOKEN;
@@ -182,16 +235,230 @@ public class Connect4Game {
                     player1Turn = true;
                 }
 
-            } else { // If anything else apart from number, T or B is entered will throw error
+                //Calls player's turn
+                System.out.println("\nPlayer " + currentPlayer + " turn");
+
+            }
+            // If anything else apart from number, T or B is entered will throw error
+            else {
                 System.out.printf("Sorry, that is not a valid move. Try again!");
             }
         }
     }
 
+    // Player vs Computer game mode
+    public static void vsComputerMode() {
+
+        System.out.println("\nComputer says 'after you' a like gentleman, it's your turn to make the first move.");
+        // Create the game board
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                board[row][col] = EMPTY_SPACE;
+            }
+        }
+
+        // Initialize the current player
+        char currentPlayer = PLAYER_1_TOKEN;
+        boolean isBlitzModeActive = false; // check if blitz is being used for every round, turns only true when blitz is used and then turns back to false. Keep it or else it triggers checkForWin to pass
+
+        // Main game loop
+        while (true) {
+            printBoard();
+            if (currentPlayer == PLAYER_1_TOKEN) {
+                // Get the player's move
+                System.out.print("Player " + currentPlayer + ", Enter column number (1-" + COLUMNS + ") or special move (B for Blitz, T for Time Bomb): ");
+                String move = scanner.next();
+
+                // Validate the input to make sure it is a valid integer or special move
+                if (!move.isEmpty() && (move.equalsIgnoreCase(BLITZ_KEY) || move.equalsIgnoreCase(TIME_BOMB_KEY) || move.matches("^\\d+$"))) {
+                    if (move.equalsIgnoreCase(BLITZ_KEY)) {
+                        // Player is using the Blitz special move
+                        if (player1Turn && !player1BlitzUsed) {
+                            while (true) {
+                                System.out.print("Enter column number to clear: ");
+                                if (scanner.hasNextInt()) {
+                                    int column = scanner.nextInt() - 1;
+                                    if (clearColumn(column)) {
+                                        player1BlitzUsed = true;
+                                        isBlitzModeActive = true;
+                                        break;
+                                    }
+                                } else {
+                                    System.out.println("Sorry, that is not a valid column. Try again!");
+                                    scanner.next();
+                                }
+                            }
+                        } else {
+                            System.out.println("Sorry, you have already used the Blitz special move.");
+                            continue;
+                        }
+
+                    }
+                    // Player is using the Time Bomb special move
+                    else if (move.equalsIgnoreCase(TIME_BOMB_KEY)) {
+                        if (timeBombCounter > 0) {
+                            System.out.print("Sorry but one time bomb is already deployed.");
+                        } else if (player1Turn && !player1TimeBombUsed) {
+                            while (true) {
+                                System.out.print("Enter column number to place the Time Bomb: ");
+                                if (scanner.hasNextInt()) {
+                                    int column = scanner.nextInt() - 1;
+                                    if (placeToken(column, TIME_BOMB_SYMBOL)) {
+                                        player1TimeBombUsed = true;
+                                        break;
+                                    }
+                                } else {
+                                    System.out.println("Sorry, that is not a valid column. Try again!");
+                                    scanner.next();
+                                }
+                            }
+                            timeBombCounter = blastTimeBombIn;
+                            timeBombRow = lastRow;
+                            timeBombCol = lastCol;
+                            try {
+                                System.out.println("\nTime Bomb has been placed! Will blast in 3 moves.");
+                                Thread.sleep(1300);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            System.out.println("Sorry, you have already used the Time Bomb special move.");
+                            continue;
+                        }
+                    }
+                    // Player is making a normal move
+                    else {
+                        int column = Integer.parseInt(move) - 1;
+                        if (!placeToken(column, currentPlayer)) {
+                            continue;
+                        }
+                    }
+
+                }
+                // If anything else apart from number, T or B is entered will throw error
+                else {
+                    System.out.printf("Sorry, that is not a valid move. Try again!");
+                    continue;
+                }
+            } else if (currentPlayer == PLAYER_2_TOKEN) {
+                // Computer's move
+                //Adding little pause to make gameplay realistic
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                //Using math random to generate random number
+                Random random = new Random();
+                int column = random.nextInt(COLUMNS) + 1;
+                System.out.println(column);
+                while (!placeToken(column, currentPlayer)) {
+                    column = random.nextInt(COLUMNS) + 1;
+                    System.out.println(column);
+                }
+            }
+
+            //For Both User & Computer Move-------
+            //Check if anyone won the game
+            if (checkForWin(lastRow, lastCol) && !isBlitzModeActive) {
+                // Check if the player has won
+                if (currentPlayer == PLAYER_1_TOKEN) {
+                    printBoard();
+                    System.out.println("GAME OVER! You emerged victorious in the battle of wits against the computer, well done!");
+                    replay();
+                    return;
+                }
+                //Check if the computer has won
+                if (currentPlayer == PLAYER_2_TOKEN) {
+                    printBoard();
+                    System.out.println("GAME OVER! Looks like the computer outsmarted you this time, better luck next time Einstein!");
+                    System.out.printf("Taking you back to main menu.");
+                    try {
+                        Thread.sleep(3000);//Just wanted to have some fun creating loading animation :)
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.printf(".");
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(".\n");
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    runGame();
+                    return;
+                }
+            }
+
+            // Check if the game is drawn
+            if (checkForDraw()) {
+                replay();
+                return;
+            }
+
+            //deactivating blitz mode
+            isBlitzModeActive = false;
+
+            // Check if time bomb counter has ended
+            if (timeBombCounter > 0) {
+                timeBombCounter--;
+            } else if (timeBombCounter == 0) {
+                try {
+                    System.out.printf("\nTick Tick ...\n");
+                    Thread.sleep(1300);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    System.out.printf("\nBOOM!!!\n");
+                    Thread.sleep(300);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                clearSurrounding(timeBombRow, timeBombCol);
+                timeBombCounter--;
+            }
+
+            // Switch to the other player
+            if (currentPlayer == PLAYER_1_TOKEN) {
+                currentPlayer = PLAYER_2_TOKEN;
+                System.out.println("\nComputer's turn");
+            } else {
+                currentPlayer = PLAYER_1_TOKEN;
+                System.out.println("\nYour turn");
+            }
+        }
+    }
+
+    //This function is just guide on how to play the game
+    private static void howToPlay() {
+        System.out.println("\nWelcome to Connect 4 with special moves! In this version of the game, \nplayers can select the column they wish to drop their counter (O or X) into \nand also use two optional special moves: BLITZ and TIME BOMB. BLITZ removes all tokens in a selected column, \nwhile TIME BOMB clears surrounding tokens after 2 more turns. \n\nTo play, select game mode, take turns dropping counters and use special moves by entering B or T followed by a column number. \nThe game will declare a winner when a line of 4 matching counters is formed or end in a draw if the board is full. \nNote that special moves can only be used once per player. Good luck!\n");
+
+        System.out.println("1. Main menu");
+
+        // Prompt the user to select a game mode
+        System.out.print("Please enter 1 to go back to the main menu: ");
+
+        // Validate the user's input to ensure that it is 1 or 2
+        String gameMode = scanner.nextLine();
+        while (!gameMode.equals("1")) {
+            System.out.print("Invalid input. Please enter 1 to go back to the main menu: ");
+            gameMode = scanner.nextLine();
+        }
+
+        if (gameMode.equals("1")) {
+            runGame();
+        }
+    }
 
     //This function is used to print the game board in the terminal
     private static void printBoard() {
-        // Print the game board
+        // Prints out the playable columns for the board
         System.out.println();
         for (int row = 0; row < ROWS; row++) {
             System.out.print("| ");
@@ -199,12 +466,16 @@ public class Connect4Game {
                 System.out.print(board[row][col] + " | ");
             }
             System.out.println();
-
         }
-        System.out.println("-----------------------------");
-        System.out.print("| ");
+        // Prints out the dashed line relative to variable Column
+        System.out.print("-");
         for (int col = 1; col < COLUMNS + 1; col++) {
-            System.out.printf("%d | ", col);
+            System.out.print("----");
+        }
+        // Prints out the numbered columns in the end
+        System.out.print("\n|");
+        for (int col = 1; col < COLUMNS + 1; col++) {
+            System.out.printf("%2d |", col);
         }
         System.out.println();
     }
@@ -342,6 +613,8 @@ public class Connect4Game {
                 }
             }
         }
+        printBoard();
+        System.out.println("GAME OVER! It's a draw.\n");
         return true; // if all spaces are filled, the game is a draw
     }
 
@@ -374,9 +647,14 @@ public class Connect4Game {
 
         for (int i = 0; i < ROWS; i++) {
             board[i][column] = EMPTY_SPACE;
-            return true;
         }
-        return false;
+        try {
+            System.out.println("\nBlitzzzzed, pew pew..");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
     /**
